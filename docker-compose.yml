@@ -1,0 +1,55 @@
+services:
+  db:
+    container_name: flask-demo-db
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB}
+    volumes:
+      - flask-demo-db-volume:/var/lib/postgresql/data
+    ports:
+      - "5444:5432"
+    networks:
+      - flask-demo-network
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
+      interval: 1s
+      timeout: 2s
+      retries: 10
+  oso:
+    container_name: flask-demo-oso
+    build:
+      context: .
+      dockerfile: Dockerfile.oso
+    env_file:
+      - .env
+    volumes:
+      - ./authorization:/cfg
+      - ./.oso:/data
+    ports:
+      - "9090:8080"
+    networks:
+      - flask-demo-network
+  app:
+    container_name: flask-demo-app
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    ports:
+      - "5000:5000"
+    networks:
+      - flask-demo-network
+    volumes:
+      - .:/code
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  flask-demo-db-volume:
+    name: flask-demo-db-volume
+networks:
+  flask-demo-network:
+    driver: bridge
