@@ -1,10 +1,16 @@
-from api.core import db
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, UUID
+from .base import Base, product_category_table
+import uuid
 
-class Category(db.Model):
-    __tablename__ = "category"
+class Category(Base):
+    __tablename__ = "categories"
 
-    id = db.Column(db.BIGINT, primary_key=True)
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
-    parent_id = db.Column(db.BIGINT, db.ForeignKey("category.id"), nullable=True)
-    title = db.Column(db.VARCHAR(75), nullable=False)
-    slug = db.Column(db.VARCHAR(100), nullable=False)
+    products: Mapped[list["Product"]] = relationship(
+        "Product",
+        secondary=product_category_table,
+        back_populates="categories",
+    )

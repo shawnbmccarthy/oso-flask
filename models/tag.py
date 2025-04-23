@@ -1,16 +1,16 @@
-from api.core import db
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, UUID
+from .base import Base, product_tag_table
+import uuid
 
-class Tag(db.Model):
-    __tablename__ = "tag"
+class Tag(Base):
+    __tablename__ = "tags"
 
-    id = db.Column(db.INT, nullable=False, primary_key=True)
-    title = db.Column(db.VARCHAR(75), nullable=False)
-    slug = db.Column(db.VARCHAR(100), nullable=False)
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
 
-    def __init__(self, title, slug, content):
-        self.title = title
-        self.slug = slug
-        self.content = content
-
-    def __repr__(self):
-        return f"<Tag {self.id}:{self.title}>"
+    products: Mapped[list["Product"]] = relationship(
+        "Product",
+        secondary=product_tag_table,
+        back_populates="tags",
+    )

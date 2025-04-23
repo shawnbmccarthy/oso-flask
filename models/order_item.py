@@ -1,12 +1,16 @@
-from api.core import db
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Integer, ForeignKey, Numeric, UUID
+from .base import Base
+import uuid
 
-class OrderItem(db.Model):
-    __tablename__ = "order_item"
+class OrderItem(Base):
+    __tablename__ = "order_items"
 
-    id = db.Column(db.BIGINT, primary_key=True)
-    product_id = db.Column(db.BIGINT, db.ForeignKey("product.id"), nullable=True)
-    order_id = db.Column(db.BIGINT, db.ForeignKey("order.id"), nullable=True)
-    sku = db.Column(db.VARCHAR(100), nullable=False)
-    price = db.Column(db.FLOAT, nullable=False)
-    discount = db.Column(db.FLOAT, nullable=False)
-    quantity = db.Column(db.INT, nullable=False)
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    order_id: Mapped[str] = mapped_column(ForeignKey("orders.id"), nullable=False)
+    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)  # snapshot at purchase
+
+    order: Mapped["Order"] = relationship("Order", back_populates="items")
+    product: Mapped["Product"] = relationship("Product", back_populates="order_items")

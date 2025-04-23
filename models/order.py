@@ -1,16 +1,18 @@
-from api.core import db
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, ForeignKey, DateTime, func, UUID
+from .base import Base
+import uuid
 
-class Order(db.Model):
-    __tablename__ = "order"
+class Order(Base):
+    __tablename__ = "orders"
 
-    id = db.Column(db.BIGINT, primary_key=True)
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="pending")
 
-    user_id = db.Column(db.BIGINT, db.ForeignKey("user.id"), nullable=True)
-    session_id = db.Column(db.VARCHAR(100), nullable=False)
-    status = db.Column(db.INT, nullable=False)
-    sub_total = db.Column(db.FLOAT, nullable=False)
-    item_discount = db.Column(db.FLOAT, nullable=False)
-    tax = db.Column(db.FLOAT, nullable=False)
-    shipping = db.Column(db.FLOAT, nullable=False)
-    total = db.Column(db.FLOAT, nullable=False)
-    promo = db.Column(db.VARCHAR(100), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), default=func.now(),onupdate=func.now())
+
+    user: Mapped["User"] = relationship("User", back_populates="orders")
+    items: Mapped[list["OrderItem"]] = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    transactions: Mapped[list["Transaction"]] = relationship("Transaction", back_populates="order", cascade="all, delete-orphan")

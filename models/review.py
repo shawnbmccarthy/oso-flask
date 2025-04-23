@@ -1,10 +1,18 @@
-from api.core import db
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Integer, ForeignKey, String, DateTime, func, UUID
+from .base import Base
+import uuid
 
-class Review(db.Model):
-    __tablename__ = "review"
+class Review(Base):
+    __tablename__ = "reviews"
 
-    id = db.Column(db.BIGINT, primary_key=True)
-    product_id = db.Column(db.BIGINT, db.ForeignKey("product.id"), nullable=False)
-    parent_id = db.Column(db.BIGINT, db.ForeignKey("review.id"), nullable=False)
-    title = db.Column(db.VARCHAR, nullable=False)
-    rating = db.Column(db.INT, nullable=False)
+    id: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False)
+    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), nullable=False)
+    rating: Mapped[int] = mapped_column(Integer, nullable=False)
+    comment: Mapped[str] = mapped_column(String(1000), nullable=True)
+
+    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship("User", back_populates="reviews")
+    product: Mapped["Product"] = relationship("Product", back_populates="reviews")
