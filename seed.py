@@ -11,6 +11,7 @@ from oso_demo.models import (
     User, Shop, Product, Category, Tag,
     Cart, CartItem
 )
+from oso_cloud import Oso
 
 logger: Logger = Logger(__name__)
 
@@ -102,26 +103,34 @@ def create_product_tags(session: Session) -> None:
         session.add_all(products)
     session.commit()
 
+def create_cart(session: Session, user: User, is_public: bool) -> (Cart, List[CartItem]):
+    no_of_items = randint(1, 3)
+    cart_items_for_user = []
+    c = Cart(user=user)
+    for i in range(no_of_items):
+        shop_id = randint(1, 5)
+        prod_id = randint(1, 5)
+        q = randint(1, 5)
+        p = session.query(Product).where(Product.name.like(f"{shop_prefix}{shop_id}_product_{prod_id}")).first()
+        ci = CartItem(cart=c, product=p, quantity=q)
+        cart_items_for_user.append(ci)
+        c.cart_items = cart_items_for_user
+    return c, cart_items_for_user
+
 def create_carts(session: Session) -> None:
     logger.info("creating carts")
     carts: List[Cart] = []
     cart_items: List[CartItem] = []
-    users: List[Type[User]] = session.query(User).where(User.name.like(f"{customer_prefix}%")).all()
+    users = session.query(User).where(User.name.like(f"{customer_prefix}%")).all()
     for user in users:
-        no_of_items = randint(1, 3)
-        cart_items_for_user = []
-        c = Cart(user=user)
-        for i in range(no_of_items):
-            shop_id = randint(1, 5)
-            prod_id = randint(1, 5)
-            q = randint(1, 5)
-            p = session.query(Product).where(Product.name.like(f"{shop_prefix}{shop_id}_product_{prod_id}")).first()
-            ci = CartItem(cart=c, product=p, quantity=q)
-            cart_items_for_user.append(ci)
-            cart_items.append(ci)
-        c.cart_items = cart_items_for_user
-        carts.append(c)
+        c_t, ci_t = create_cart(session, user, True)
+        c_f, ci_f = create_cart(session, user, False)
+        cart_items.extend(ci_t)
+        cart_items.extend(ci_f)
+        carts.append(c_t)
+        carts.append(c_f)
     session.add_all(carts)
+    print(f"CART ITEMS:{cart_items}")
     session.add_all(cart_items)
     session.commit()
 
@@ -145,7 +154,6 @@ def main():
         create_product_categories(session)
         # tags & product_tags
         create_product_tags(session)
-        # TODO
         # carts & cart_items
         create_carts(session)
         # orders & order_items

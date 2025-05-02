@@ -33,7 +33,11 @@ def create_app() -> Flask:
     app.engine = cast(Engine, create_engine(app.config["SQLALCHEMY_DATABASE_URI"], echo=True))
 
     # add oso
-    app.oso = cast(Oso, Oso(url=app.config["OSO_URL"], api_key=app.config["OSO_AUTH"]))
+    app.oso = cast(Oso, Oso(
+        url=app.config["OSO_URL"],
+        api_key=app.config["OSO_AUTH"],
+        data_bindings=app.config["OSO_DATA_BINDINGS"]
+    ))
 
     Session(app)
 
