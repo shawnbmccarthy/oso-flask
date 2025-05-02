@@ -3,14 +3,92 @@
 # 1. customer
 # 2. vendor
 #
+global {
+    roles = ["admin"];
+}
+
 actor User {}
+
+resource Profile {
+    permissions = ["view", "update", "archive", "request.delete", "delete"];
+    roles = ["viewer"];
+
+    relations = {
+        owner: User
+    };
+
+    "viewer" if "owner";
+
+    "delete" if global "admin";
+
+    "update" if "owner";
+    "archive" if "owner";
+    "request.delete" if "owner";
+
+    "view" if "viewer" or is_public(resource);
+}
 
 #
 # a shopping cart should only be editable
 # by the customer that created it
 #
-resource ShoppingCart {}
+resource ShoppingCart {
+    permissions = ["view", "update", "delete"];
+
+    relations = {
+        owner: User
+    };
+
+    "update" if "owner";
+    "delete" if "owner";
+    "view" if "owner" or is_public(resource);
+}
 
 #
 # resource shop
 #
+resource Shop {
+    permissions = [
+        "view",
+        "update",
+        "create.product",
+        "update.inventory",
+        "deactivate",
+        "archive",
+        "request.delete"
+    ];
+
+    roles = ["admin", "staff"];
+
+    relations = {
+        owner: User
+    };
+
+    "admin" if "owner";
+    "staff" if "admin";
+
+    "request.delete" if "owner";
+    "archive" if "owner";
+    "deactivate" if "admin";
+    "update" if "admin";
+    "create.product" if "staff";
+
+    "view" if "staff" or is_active(resource);
+}
+
+resource Product {
+    permissions = ["view", "update", "delete", "archive", "deactivate"];
+    roles = ["admin", "staff"];
+
+    relations = {
+        belongs_to: Shop
+    };
+
+    role if role on "belongs_to";
+
+    "delete" if "admin";
+    "update" if "staff";
+    "archive" if "staff";
+    "deactivate" if "staff";
+    "view" if "staff" or is_active(resource);
+}

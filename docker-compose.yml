@@ -15,8 +15,8 @@ services:
       timeout: 2s
       retries: 10
   oso:
-    build:
-      dockerfile: Dockerfile.oso
+    image: public.ecr.aws/osohq/dev-server:latest
+    command: --watch-for-changes /cfg/policy.polar
     volumes:
       - ./authorization:/cfg
       - ./.oso:/data

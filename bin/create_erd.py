@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from eralchemy2 import render_er
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from models.base import Base
+from oso_demo.models import Base
 
 # This engine is for local dev/ERD only. Swap to Postgres in your app config.
 engine = create_engine("sqlite:///tmp.db", echo=True)

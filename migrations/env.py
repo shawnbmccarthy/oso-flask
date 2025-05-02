@@ -45,7 +45,7 @@ target_db = current_app.extensions['migrate'].db
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-from models.base import Base
+from oso_demo.models.base import Base
 
 def get_metadata():
     return Base.metadata

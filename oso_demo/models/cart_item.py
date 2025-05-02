@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Integer, ForeignKey, UUID
+from typing import Dict
 from .base import Base
 import uuid
 
@@ -16,3 +17,6 @@ class CartItem(Base):
 
     cart: Mapped["Cart"] = relationship("Cart", back_populates="items")
     product: Mapped["Product"] = relationship("Product", back_populates="cart_items")
+
+    def to_dict(self) -> Dict:
+        return dict((col, getattr(self, col)) for col in self.__table__.columns.keys())

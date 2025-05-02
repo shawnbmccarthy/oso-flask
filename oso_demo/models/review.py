@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Integer, ForeignKey, String, DateTime, func, UUID
+from typing import Dict
 from .base import Base
 import uuid
 
@@ -16,3 +17,6 @@ class Review(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="reviews")
     product: Mapped["Product"] = relationship("Product", back_populates="reviews")
+
+    def to_dict(self) -> Dict:
+        return dict((col, getattr(self, col)) for col in self.__table__.columns.keys())

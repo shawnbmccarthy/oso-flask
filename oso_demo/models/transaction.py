@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, String, Numeric, DateTime, func, UUID
+from typing import Dict
 from .base import Base
 import uuid
 
@@ -15,3 +16,6 @@ class Transaction(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     order: Mapped["Order"] = relationship("Order", back_populates="transactions")
+
+    def to_dict(self) -> Dict:
+        return dict((col, getattr(self, col)) for col in self.__table__.columns.keys())

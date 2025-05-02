@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Integer, String, ForeignKey, Numeric, DateTime, func, UUID
-
-from models import Category
+from typing import Dict
+from oso_demo.models import Category
 from .base import Base, product_category_table, product_tag_table
 import uuid
 
@@ -12,6 +12,7 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(String(1000), nullable=True)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    is_active: Mapped[bool] = mapped_column(nullable=False, default=True)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     shop_id: Mapped[str] = mapped_column(ForeignKey("shops.id"), nullable=False)
 
@@ -34,3 +35,6 @@ class Product(Base):
         secondary=product_category_table,
         back_populates="products",
     )
+
+    def to_dict(self) -> Dict:
+        return dict((col, getattr(self, col)) for col in self.__table__.columns.keys())

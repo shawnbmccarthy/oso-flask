@@ -1,0 +1,16 @@
+{% extends "_layout.html" %}
+{% block main_content %}
+    <div>
+        <div>toolbar</div>
+    </div>
+    <div>
+    {% if session.uid %}
+        <h1>home: {{ session.username }}</h1>
+        <p>{{ session.uid }}</p>
+        <a href="/logout">logout</a>
+    {% else %}
+        <h1>home</h1>
+        <a href="/login">login</a>
+    {% endif %}
+    </div>
+{% endblock %}

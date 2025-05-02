@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, DateTime, func, UUID
-from .base import Base
+from typing import Dict
+from .base import Base, shop_employee_table
 import uuid
 
 class User(Base):
@@ -17,3 +18,7 @@ class User(Base):
     carts: Mapped[list["Cart"]] = relationship("Cart", back_populates="user")
     orders: Mapped[list["Order"]] = relationship("Order", back_populates="user")
     reviews: Mapped[list["Review"]] = relationship("Review", back_populates="user")
+    works_at: Mapped[list["Shop"]] = relationship("Shop", back_populates="employees", secondary=shop_employee_table)
+
+    def to_dict(self) -> Dict:
+        return dict((col, getattr(self, col)) for col in self.__table__.columns.keys())

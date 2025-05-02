@@ -2,14 +2,14 @@
 
 """
 from logging import Logger
-from random import randrange
+from random import randrange, randint
 from os import environ
 from sqlalchemy import create_engine, Engine
-from sqlalchemy.orm import Session, InstrumentedAttribute
+from sqlalchemy.orm import Session
 from typing import List, Type
-from models import (
+from oso_demo.models import (
     User, Shop, Product, Category, Tag,
-    Cart, CartItem, Order, OrderItem, Review, Transaction
+    Cart, CartItem
 )
 
 logger: Logger = Logger(__name__)
@@ -17,16 +17,18 @@ logger: Logger = Logger(__name__)
 # prefixes needed for seeding
 customer_prefix = "customer_"
 shop_owner_prefix = "owner_"
+staff_prefix = "staff_"
 shop_prefix = "shop_"
 
 def create_users(session: Session) -> None:
-    logger.info("creating users & shop owners")
+    logger.info("creating users, shop owners & staff")
     users: List[User] = []
     for i in range(1, 6):
         users.append(User(email=f"{customer_prefix}{i}@example.com", name=f"{customer_prefix}{i}"))
 
     for i in range(1, 6):
         users.append(User(email=f"{shop_owner_prefix}{i}@example.com", name=f"{shop_owner_prefix}{i}"))
+        users.append(User(email=f"{staff_prefix}{i}@example.com", name=f"{staff_prefix}{i}"))
 
     session.add_all(users)
     session.commit()
@@ -37,10 +39,12 @@ def create_shops(session: Session) -> None:
     shop_owners: List[Type[User]] = session.query(User).where(User.name.like(f"{shop_owner_prefix}%")).all()
     for shop_owner in shop_owners:
         i: str = shop_owner.name.split("_")[1]
+        staff_user = session.query(User).where(User.name.like(f"{staff_prefix}{i}")).first()
         shops.append(Shop(
             name=f"{shop_prefix}{i}",
             description=f"{shop_owner.name} store front",
-            owner=shop_owner
+            owner=shop_owner,
+            employees=[staff_user] if staff_user else []
         ))
     session.add_all(shops)
     session.commit()
@@ -98,6 +102,30 @@ def create_product_tags(session: Session) -> None:
         session.add_all(products)
     session.commit()
 
+def create_carts(session: Session) -> None:
+    logger.info("creating carts")
+    carts: List[Cart] = []
+    cart_items: List[CartItem] = []
+    users: List[Type[User]] = session.query(User).where(User.name.like(f"{customer_prefix}%")).all()
+    for user in users:
+        no_of_items = randint(1, 3)
+        cart_items_for_user = []
+        c = Cart(user=user)
+        for i in range(no_of_items):
+            shop_id = randint(1, 5)
+            prod_id = randint(1, 5)
+            q = randint(1, 5)
+            p = session.query(Product).where(Product.name.like(f"{shop_prefix}{shop_id}_product_{prod_id}")).first()
+            ci = CartItem(cart=c, product=p, quantity=q)
+            cart_items_for_user.append(ci)
+            cart_items.append(ci)
+        c.cart_items = cart_items_for_user
+        carts.append(c)
+    session.add_all(carts)
+    session.add_all(cart_items)
+    session.commit()
+
+
 def main():
     db_url: str | None = environ.get("DATABASE_URL")
     if not db_url:
@@ -118,9 +146,9 @@ def main():
         # tags & product_tags
         create_product_tags(session)
         # TODO
-        # carts
-        # cart_items
-        # orders
+        # carts & cart_items
+        create_carts(session)
+        # orders & order_items
 
 if __name__ == "__main__":
     logger.info("starting seed of data")

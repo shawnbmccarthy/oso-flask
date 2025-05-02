@@ -1,0 +1,18 @@
+{% extends "_layout.html" %}
+{% block main_content %}
+    <div>
+        <div>toolbar</div>
+    </div>
+    <div>
+        <h1>log in</h1>
+        <form action="/login" method="POST">
+            <label for="uid">choose user:</label>
+            <select name="uid" id="uid">
+                {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="log in"/>
+        </form>
+    </div>
+{% endblock %}
