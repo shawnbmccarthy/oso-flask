@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 9e383cba34c7
+Revision ID: 1b2e504dc90c
 Revises: 
-Create Date: 2025-04-22 20:24:57.148489
+Create Date: 2025-05-03 05:30:56.799537
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9e383cba34c7'
+revision = '1b2e504dc90c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -42,6 +42,7 @@ def upgrade():
     op.create_table('carts',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=False),
+    sa.Column('is_public', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
@@ -60,6 +61,7 @@ def upgrade():
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=False),
     sa.Column('description', sa.String(length=1000), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('owner_id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
@@ -72,12 +74,20 @@ def upgrade():
     sa.Column('name', sa.String(length=255), nullable=False),
     sa.Column('description', sa.String(length=1000), nullable=True),
     sa.Column('price', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
     sa.Column('shop_id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['shop_id'], ['shops.id'], ),
     sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('shop_employees',
+    sa.Column('shop_id', sa.UUID(), nullable=False),
+    sa.Column('user_id', sa.UUID(), nullable=False),
+    sa.ForeignKeyConstraint(['shop_id'], ['shops.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('shop_id', 'user_id')
     )
     op.create_table('transactions',
     sa.Column('id', sa.UUID(), nullable=False),
@@ -144,6 +154,7 @@ def downgrade():
     op.drop_table('order_items')
     op.drop_table('cart_items')
     op.drop_table('transactions')
+    op.drop_table('shop_employees')
     op.drop_table('products')
     op.drop_table('shops')
     op.drop_table('orders')

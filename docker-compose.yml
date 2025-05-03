@@ -33,7 +33,7 @@ services:
       FLASK_APP: oso_demo:create_app
       DATABASE_URL: postgresql://postgres:postgres@db:5432/oso_cart
       OSO_AUTH: e_0123456789_12345_osotesttoken01xiIn
-      OSO_URL: http://oso:9090
+      OSO_URL: http://oso:8080
       OSO_DATA_BINDINGS: /code/authorization/policy.yml
     ports:
       - "5000:5000"

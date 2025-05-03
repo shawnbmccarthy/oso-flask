@@ -9,6 +9,7 @@ global {
 
 actor User {}
 
+# not used yet
 resource Profile {
     permissions = ["view", "update", "archive", "request.delete", "delete"];
     roles = ["viewer"];
@@ -32,7 +33,7 @@ resource Profile {
 # a shopping cart should only be editable
 # by the customer that created it
 #
-resource ShoppingCart {
+resource Cart {
     permissions = ["view", "update", "delete"];
 
     relations = {
