@@ -9,7 +9,7 @@ global {
 
 actor User {}
 
-# not used yet
+# not built out yet
 resource Profile {
     permissions = ["view", "update", "archive", "request.delete", "delete"];
     roles = ["viewer"];
@@ -67,6 +67,7 @@ resource Shop {
 
     "admin" if "owner";
     "staff" if "admin";
+    "admin" if global "admin";
 
     "request.delete" if "owner";
     "archive" if "owner";

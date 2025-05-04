@@ -8,9 +8,7 @@ from sqlalchemy import create_engine, Engine
 from oso_demo.api.core import db
 from oso_demo.api.errors import register_error_handlers
 from oso_demo.routes.carts import carts_bp
-from oso_demo.routes.products import products_bp
 from oso_demo.routes.shops import shops_bp
-from oso_demo.routes.transactions import transactions_bp
 from oso_demo.routes.users import users_bp
 from oso_demo.views.home_views import app_views_bp
 
@@ -43,9 +41,7 @@ def create_app() -> Flask:
 
     # register routes
     app.register_blueprint(carts_bp, url_prefix="/api/v1/carts")
-    app.register_blueprint(products_bp, url_prefix="/api/v1/products")
     app.register_blueprint(shops_bp, url_prefix="/api/v1/shops")
-    app.register_blueprint(transactions_bp, url_prefix="/api/v1/transactions")
     app.register_blueprint(users_bp, url_prefix="/api/v1/users")
 
     # register views

@@ -160,6 +160,11 @@ def main():
 
     engine: Engine = create_engine(db_url, echo=False)
     oso: Oso = Oso(environ.get("OSO_URL"), environ.get("OSO_AUTH"), environ.get("OSO_DATA_BINDINGS") or {} )
+    # clean up oso
+    oso.delete(("has_relation", None, None, None))
+    oso.delete(("has_role", None, None, None))
+    oso.delete(("is_active", None))
+    oso.delete(("is_public", None))
 
     with Session(engine) as session:
         logger.info("create initial shop data")
