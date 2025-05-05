@@ -3,6 +3,9 @@
 This project represents the very basics of a marketplace shopping cart. A lot of 
 features are not implemented.
 
+Every REST call (except /api/v1/users) requires a request arg called uid, which represents
+the users uuid. Typically we would use JWT tokens or other mechanisms as needed.
+
 For this workshop the exercise will include:
 1. **integrate Oso into shopping cart**: make use of Oso to support viewing public carts
    and editing only our own carts
@@ -20,9 +23,20 @@ A shopping cart is owned by a user, products from any shop can be added to a sho
 Shopping carts can be publicly viewed if they are marked as such so that any user can 
 The rules (see [policy.polar](./authorization/policy.polar))
 
-1. A user should be able to see all their carts and public carts
-   1. using [`oso.list`](https://www.osohq.com/docs/app-integration/client-apis/python#list-centralized]%20[#list-centralized) we can return a list of objects 
-2. A user should be able to update their own carts
+### Exercise 1
+A user should be able to see all their carts and public carts, this is an example of using 
+list api's to ask what we have access to.
+
+using [`oso.list`](https://www.osohq.com/docs/app-integration/client-apis/python#list-centralized]%20[#list-centralized) 
+we can return a list of carts that the user is allowed to see, edit the `get_all_users` function in
+[users.py](./oso_demo/routes/users.py).
+
+Using the oso client, found in the current_app context (`current_app.oso`)
+
+
+
+### Exercise 2
+3. A user should be able to update their own carts
 
 ## Shop
 

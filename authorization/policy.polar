@@ -94,3 +94,19 @@ resource Product {
     "deactivate" if "staff";
     "view" if "staff" or is_active(resource);
 }
+
+test "user can edit their own cart, but view others public cart" {
+    setup {
+        has_relation(Cart{"c"}, "owner", User{"a"});
+        has_relation(Cart{"d"}, "owner", User{"b"});
+        is_public(Cart{"d"});
+    }
+    assert allow(User{"a"}, action:String, Cart{"c"}) iff
+        action in ["delete", "update", "view"];
+
+    assert allow(User{"b"}, action:String, Cart{"d"}) iff
+        action in ["delete", "update", "view"];
+
+    assert allow(User{"a"}, "view", Cart{"d"});
+    assert_not allow(User{"a"}, "update", Cart{"d"});
+}
