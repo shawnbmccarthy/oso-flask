@@ -52,18 +52,3 @@ The system is built using docker compose:
 ## erd diagram
 
 ![erd for application](erd.png)
-
-## Notes
-installing pygraphviz on Mac, needed for eralchemy2
-
-used to attempt to generate a simple ER diagram, used pycharm tools for documentation
-as it provided a cleaner look.
-
-```
- pip install \ 
-    --use-pep517 \
-    --config-settings="--global-option=build_ext" \
-    --config-settings="--global-option=-I$(brew --prefix graphviz)/include/" \
-    --config-settings="--global-option=-L$(brew --prefix graphviz)/lib/" \
-    pygraphviz
-```
