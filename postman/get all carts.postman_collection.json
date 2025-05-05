@@ -1,0 +1,187 @@
+{
+	"info": {
+		"_postman_id": "510f3d2a-5dc4-40a0-a5de-037419e78df0",
+		"name": "get all carts",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40264637"
+	},
+	"item": [
+		{
+			"name": "get users",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"user\", pm.response.json().users[0].id);",
+							"",
+							"pm.test(\"Response status code is 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields - email, id, and name\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.users).to.be.an('array');",
+							"    ",
+							"    responseData.users.forEach(function(user) {",
+							"        pm.expect(user.email).to.be.a('string');",
+							"        pm.expect(user.id).to.exist.and.to.be.a('string');",
+							"        pm.expect(user.name).to.exist.and.to.be.a('string');",
+							"    });",
+							"});",
+							"",
+							"",
+							"pm.test(\"Email format is valid for all users\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.users).to.be.an('array');",
+							"    responseData.users.forEach(function(user) {",
+							"        pm.expect(user.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/, \"Invalid email format\");",
+							"    });",
+							"});",
+							"",
+							"",
+							"pm.test(\"Id is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData.users).to.be.an('array');",
+							"    responseData.users.forEach(function(user) {",
+							"        pm.expect(user.id).to.be.a('string').and.to.have.length.above(0, \"Id should be a non-empty string\");",
+							"    });",
+							"});",
+							"",
+							"",
+							"pm.test(\"Name is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.users).to.be.an('array');",
+							"    responseData.users.forEach(function(user) {",
+							"        pm.expect(user.name).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Name should not be empty\");",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/users",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all visible carts",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Response status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"})",
+							"",
+							"pm.test('Validate the items array within each cart', function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.carts).to.be.an('array');",
+							"    responseData.carts.forEach(function (cart) {",
+							"        pm.expect(cart.items).to.be.an('array');",
+							"        cart.items.forEach(function (item) {",
+							"            pm.expect(item).to.be.an('object');",
+							"            pm.expect(item.cart_id).to.be.a('string');",
+							"            pm.expect(item.id).to.be.a('string');",
+							"            pm.expect(item.product_id).to.be.a('string');",
+							"            pm.expect(item.quantity).to.be.a('number');",
+							"        });",
+							"    });",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "uid",
+						"value": "{{user}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/carts",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"carts"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "user",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

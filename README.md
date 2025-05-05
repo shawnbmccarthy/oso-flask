@@ -4,7 +4,8 @@ A simple shopping cart application to demonstrate the features of Oso
 
 ## Run
 
-ensure we have installed oso-cloud cli installed:
+to get started:
+
 ```
 # install oso cloud cli
 curl -L https://cloud.osohq.com/install.sh | bash
@@ -13,7 +14,7 @@ curl -L https://cloud.osohq.com/install.sh | bash
 export OSO_URL=http://localhost:9090
 export OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn
 
-# start docker
+# in another window run docker
 docker compose up --build
 
 # test it out -> should return 80 lines
