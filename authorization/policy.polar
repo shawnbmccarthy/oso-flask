@@ -9,7 +9,7 @@ global {
 
 actor User {}
 
-# not built out yet
+# not built out in flask
 resource Profile {
     permissions = ["view", "update", "archive", "request.delete", "delete"];
     roles = ["viewer"];

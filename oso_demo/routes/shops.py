@@ -12,7 +12,8 @@ def active_shops():
     ret_data = {}
     uid = request.headers.get("uid")
 
-    # TODO: oso list call here
+    # TODO: what shops can the user see? (list)
+
     with Session(current_app.engine) as s:
         # TODO: add Oso list as filter below
         shops = s.query(Shop).filter().all()
@@ -22,7 +23,9 @@ def active_shops():
 @shops_bp.route("/", methods=["POST"])
 def create_shop():
     """
-    exercise 2: create a shop
+    exercise 2: create a shop, every user can create a shop
+                creating a shop requires oso data for authorized access to
+                the shop
     """
     uid = request.headers.get("uid")
     data = request.json
@@ -40,19 +43,79 @@ def create_shop():
         shop = Shop(name=name, description=desc, is_active=is_active, owner_id=uid)
         s.add(shop)
         s.commit()
-        # todo: write one oso fact for shop ownership relationship and one for active if active
+        # TODO: write one oso fact for shop ownership relationship and one for active if active
+        return jsonify({"shop": shop.to_dict()}), 200
+
+@shops_bp.route("/<str:shop_uuid>", methods=["GET"])
+def update_shop(shop_uuid: str):
+    """
+    exercise 3: view the shop details
+    """
+    uid = request.headers.get("uid")
+
+    # todo: can user view the shop
+    #       only staff an owners can view inactive shops
+
+    with Session(current_app.engine) as s:
+        shop = s.query(Shop).filter(Shop.id == shop_uuid).first()
         return jsonify({"shop": shop.to_dict()}), 200
 
 @shops_bp.route("/all_products", methods=["GET"])
 def get_all_products():
     """
-    exercise 3: get all active products across all active shops
+    exercise 4: get all active products across all active shops
     """
     uid = request.headers.get("uid")
 
-    # todo: use list or  query interface
+    # todo: use list or query interface (depending on who we are will depend on what
+    #       we can see)
+
     with Session(current_app.engine) as s:
         # todo: add filter here
         #       can also do sorts, pagination, etc.
         products = s.query(Product).filter().all()
         return jsonify({"products": [product.to_dict() for product in products]}), 200
+
+@shops_bp.route("/<str:shop_uuid>/products", methods=["GET"])
+def get_products_in_shop(shop_uuid: str):
+    """
+    exercise 5: get all products in a shop
+    """
+    uid = request.headers.get("uid")
+
+    # todo: what products can the user view (list)
+    #       only staff and owner can view inactive products
+    with Session(current_app.engine) as s:
+        # add list filter here
+        products = s.query(Product).filter().all()
+        return jsonify({"products": [product.to_dict() for product in products]}), 200
+
+@shops_bp.route("/<str:shop_id>/product", methods=["POST"])
+def add_product_to_shop(shop_id: str):
+    """
+    exercise 6: add a product to a shop
+    """
+    uid = request.headers.get("uid")
+
+    # todo: is user allowed to add new product to a shop?
+
+    data = request.json
+    product_name = data.get("product_name")
+    product_desc = data.get("product_desc")
+    product_price = float(data.get("product_price"))
+    product_quantity = int(data.get("product_quantity"))
+    product_active = bool(data.get("product_active"))
+
+    with Session(current_app.engine) as s:
+        shop = s.query(Shop).filter().first()
+        product = Product(
+            name=product_name,
+            description=product_desc,
+            price=product_price,
+            quantity=product_quantity,
+            is_active=product_active,
+        )
+        shop.products.append(product)
+        s.update(shop)
+        s.commit()
+        return jsonify({"product added": product.to_dict()}), 200

@@ -81,12 +81,11 @@ This exercise is similar to `Exercise 1` for items
 
 ### Exercise 6: add item to cart
 
-This exercise is similar to `Exercise 2`, but we are adding a
-product to the cart
+This exercise is similar to `Exercise 2`, the difference being we are adding a product to the cart
 
 ### Exercise 7:
 
-This exercise is similar to `Exercise 2`, but we are removing an item from the cart
+This exercise is similar to `Exercise 2`, the difference being we are removing an item from the cart
 
 ## Shop
 
@@ -102,15 +101,29 @@ All code changes will occur in [shops.py](./oso_demo/routes/shops.py)
 
 ### Exercise 1: list all active shops
 
-This is similar to exercise 1 in shops
+This is similar to exercise 1 in carts, staff and owners can see their own non-active shops
 
 ### Exercise 2: create a shop
 
-This is similar to exercise 2 in shops
+This is similar to exercise 2 in carts, when creating new resources, facts have to be written to Oso.
 
-### Exercise 3: get all active products for all active shops
+### Exercise 3: view shop details
 
-For this exercise, could we use the query builder to get a list of all active products across all active shops?
+View the details of the shop, only staff and owners can view in their shops that are in active.
+
+
+### Exercise 4: get all products across all shops
+
+using Oso get a list of all active products across all active shops using Oso query builder
+
+### Exercise 5: get all products for a shop
+
+For this exercise, a list of products for the shop should be returned based on the users role
+Staff and owners will be able to see products that are not active
+
+### Exercise 6: add a product to a shop
+
+for this exercise, lets add a product to a shop. Only staff and owners can add products to a shop
 
 ## Global Admin
 
@@ -139,4 +152,3 @@ structure.
 As Oso evaluates the policy, a data-bindings file is sent to oso describing the SQL queries that need to execute to 
 make the authorization decision. These bindings are then used to create complex filters that are then passed to the 
 database using the applications ORM.
-

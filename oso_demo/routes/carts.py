@@ -68,9 +68,11 @@ def delete_cart(cart_uuid):
     Exercise 4: user should only be allowed to delete their own carts
     """
     uid = request.headers.get("uid")
+
+    # TODO: is user allowed to delete cart?
+
     with Session(current_app.engine) as s:
-        # TODO: oso filter here
-        s.query(Cart).filter().delete()
+        s.query(Cart).filter(Cart.id == cart_uuid).delete()
         s.commit()
         # TODO: delete has_relation fact
         #       if public, is_public fact
@@ -82,6 +84,8 @@ def cart_items(cart_uuid):
     exercise 5: get all items in a cart
     """
     uuid = request.headers.get("uuid")
+
+    # TODO: is user allowed to read cart?
     ret_data = {}
     with Session(current_app.engine) as s:
         cart_items = s.query(CartItem).filter(CartItem.cart_id == cart_uuid).all()
@@ -96,6 +100,9 @@ def add_cart_item(cart_uuid):
     their own carts
     """
     uuid = request.headers.get("uuid")
+
+    # TODO: is user allowed to update cart?
+
     data = request.json
     pid = data.get("pid")
     quantity = int(data.get("quantity"))
@@ -117,10 +124,11 @@ def delete_cart_item(cart_uuid, ci_uuid):
     exercise 7: a user should only be able to remove items from their own carts
     """
     uuid = request.headers.get("uuid")
+
+    # todo: is user allowed to update cart?
+
     i = 0
     with Session(current_app.engine) as s:
-        # TODO: oso filter here
-        # note: business logic for putting product back to stock left out for simplicity
-        i = s.query(CartItem).filter().delete()
+        i = s.query(CartItem).filter((CartItem.cart_id == cart_uuid) & (CartItem.id == ci_uuid)).delete()
         s.commit()
     return jsonify({"deleted": ci_uuid, "i": i}), 200
