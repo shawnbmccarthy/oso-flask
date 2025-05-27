@@ -7,27 +7,20 @@ A simple shopping cart application to demonstrate the features of Oso
 to get started:
 
 ```
-# install oso cloud cli
-curl -L https://cloud.osohq.com/install.sh | bash
-
-# setup local-dev environment for oso-cloud cli testing
-export OSO_URL=http://localhost:9090
-export OSO_AUTH=e_0123456789_12345_osotesttoken01xiIn
-
-# in another window run docker
+# fire up the example app in docker
 docker compose up --build
 
-# test it out -> should return 80 lines
-oso-cloud get | wc -l
+# in another window test it out -> should return 80 lines
+./oso-cloud.sh get | wc -l
 
 # test it out -> should return 5 lines
-oso-cloud query allow User:_ "update" Shop:_
+./oso-cloud.sh query allow User:_ "update" Shop:_
 ```
 
 ### about the dev environment
 
 The system is built using docker compose:
-1. oso dev server: 
+1. oso dev server:
    1. uses `public.ecr.aws/osohq/dev-server:latest`
    2. maps volume to ./authorization and ./.oso for data
    3. maps default 8080 to localhost 9090
