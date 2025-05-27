@@ -1,8 +1,12 @@
-from flask import Blueprint, current_app, jsonify, request, Session
-from oso_demo.models import Shop, Product
-from oso_cloud import Value
+from flask import Blueprint, current_app, jsonify, request
+
+# from oso_cloud import Value
+from sqlalchemy.orm import Session
+
+from oso_demo.models import Product, Shop
 
 shops_bp = Blueprint("shops", __name__)
+
 
 @shops_bp.route("/", methods=["GET"])
 def active_shops():
@@ -19,6 +23,7 @@ def active_shops():
         shops = s.query(Shop).filter().all()
         ret_data["shops"] = [shop.to_dict() for shop in shops]
     return jsonify(ret_data), 200
+
 
 @shops_bp.route("/", methods=["POST"])
 def create_shop():
@@ -46,7 +51,8 @@ def create_shop():
         # TODO: write one oso fact for shop ownership relationship and one for active if active
         return jsonify({"shop": shop.to_dict()}), 200
 
-@shops_bp.route("/<str:shop_uuid>", methods=["GET"])
+
+@shops_bp.route("/<shop_uuid>", methods=["GET"])
 def update_shop(shop_uuid: str):
     """
     exercise 3: view the shop details
@@ -59,6 +65,7 @@ def update_shop(shop_uuid: str):
     with Session(current_app.engine) as s:
         shop = s.query(Shop).filter(Shop.id == shop_uuid).first()
         return jsonify({"shop": shop.to_dict()}), 200
+
 
 @shops_bp.route("/all_products", methods=["GET"])
 def get_all_products():
@@ -76,7 +83,8 @@ def get_all_products():
         products = s.query(Product).filter().all()
         return jsonify({"products": [product.to_dict() for product in products]}), 200
 
-@shops_bp.route("/<str:shop_uuid>/products", methods=["GET"])
+
+@shops_bp.route("/<shop_uuid>/products", methods=["GET"])
 def get_products_in_shop(shop_uuid: str):
     """
     exercise 5: get all products in a shop
@@ -90,7 +98,8 @@ def get_products_in_shop(shop_uuid: str):
         products = s.query(Product).filter().all()
         return jsonify({"products": [product.to_dict() for product in products]}), 200
 
-@shops_bp.route("/<str:shop_id>/product", methods=["POST"])
+
+@shops_bp.route("/<shop_id>/product", methods=["POST"])
 def add_product_to_shop(shop_id: str):
     """
     exercise 6: add a product to a shop

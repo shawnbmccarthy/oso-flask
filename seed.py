@@ -1,17 +1,15 @@
-"""
+""" """
 
-"""
 from logging import Logger
-from random import randrange, randint
 from os import environ
-from sqlalchemy import create_engine, Engine
-from sqlalchemy.orm import Session
+from random import randint, randrange
 from typing import List
-from oso_demo.models import (
-    User, Shop, Product, Category, Tag,
-    Cart, CartItem
-)
+
 from oso_cloud import Oso, Value
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import Session
+
+from oso_demo.models import Cart, CartItem, Category, Product, Shop, Tag, User
 
 logger: Logger = Logger(__name__)
 
@@ -21,43 +19,84 @@ shop_owner_prefix = "owner_"
 staff_prefix = "staff_"
 shop_prefix = "shop_"
 
+
+def safe_call(func, *args, **kwargs):
+    try:
+        return func(*args, **kwargs)
+    except Exception as e:
+        logger.error(f"Error in {func.__name__}: {e}")
+
+
 def create_users(session: Session) -> None:
     logger.info("creating users, shop owners & staff")
     users: List[User] = []
     for i in range(1, 6):
-        users.append(User(email=f"{customer_prefix}{i}@example.com", name=f"{customer_prefix}{i}"))
+        users.append(
+            User(
+                email=f"{customer_prefix}{i}@example.com", name=f"{customer_prefix}{i}"
+            )
+        )
 
     for i in range(1, 6):
-        users.append(User(email=f"{shop_owner_prefix}{i}@example.com", name=f"{shop_owner_prefix}{i}"))
-        users.append(User(email=f"{staff_prefix}{i}@example.com", name=f"{staff_prefix}{i}"))
+        users.append(
+            User(
+                email=f"{shop_owner_prefix}{i}@example.com",
+                name=f"{shop_owner_prefix}{i}",
+            )
+        )
+        users.append(
+            User(email=f"{staff_prefix}{i}@example.com", name=f"{staff_prefix}{i}")
+        )
 
     session.add_all(users)
     session.commit()
+
 
 def create_shops(session: Session, oso: Oso) -> None:
     logger.info("creating shops")
     shops: List[Shop] = []
     with session.no_autoflush:
-        shop_owners = session.query(User).filter(User.name.like(f"{shop_owner_prefix}%")).all()
+        shop_owners = (
+            session.query(User).filter(User.name.like(f"{shop_owner_prefix}%")).all()
+        )
         for shop_owner in shop_owners:
             i: str = shop_owner.name.split("_")[1]
-            staff_user = session.query(User).filter(User.name.like(f"{staff_prefix}{i}")).first()
-            shops.append(Shop(
-                name=f"{shop_prefix}{i}",
-                description=f"{shop_owner.name} store front",
-                owner=shop_owner,
-                employees=[staff_user] if staff_user else []
-            ))
+            staff_user = (
+                session.query(User).filter(User.name.like(f"{staff_prefix}{i}")).first()
+            )
+            shops.append(
+                Shop(
+                    name=f"{shop_prefix}{i}",
+                    description=f"{shop_owner.name} store front",
+                    owner=shop_owner,
+                    employees=[staff_user] if staff_user else [],
+                )
+            )
     session.add_all(shops)
     session.commit()
     # create oso roles now that SQL commit is completed
     with oso.batch() as tx:
         for shop in shops:
-            tx.insert(("has_relation", Value("Shop", shop.id), "owner", Value("User", shop.owner.id)))
+            tx.insert(
+                (
+                    "has_relation",
+                    Value("Shop", shop.id),
+                    "owner",
+                    Value("User", shop.owner.id),
+                )
+            )
             if shop.is_active:
                 tx.insert(("is_active", Value("Shop", shop.id)))
             for employee in shop.employees:
-                tx.insert(("has_role", Value("User", employee.id), "staff", Value("Shop", shop.id)))
+                tx.insert(
+                    (
+                        "has_role",
+                        Value("User", employee.id),
+                        "staff",
+                        Value("Shop", shop.id),
+                    )
+                )
+
 
 def create_products(session: Session, oso: Oso) -> None:
     logger.info("creating products (5 per shop)")
@@ -77,28 +116,41 @@ def create_products(session: Session, oso: Oso) -> None:
     session.commit()
     with oso.batch() as tx:
         for product in products:
-            tx.insert(("has_relation", Value("Product", product.id), "belongs_to", Value("Shop", product.shop.id)))
+            tx.insert(
+                (
+                    "has_relation",
+                    Value("Product", product.id),
+                    "belongs_to",
+                    Value("Shop", product.shop.id),
+                )
+            )
             if product.is_active:
                 tx.insert(("is_active", Value("Product", product.id)))
+
 
 def create_product_categories(session: Session) -> None:
     logger.info("creating product categories")
     categories: List[Category] = []
 
     for i in range(1, 6):
-        categories.append(Category(name = f"category_product_{i}"))
+        categories.append(Category(name=f"category_product_{i}"))
 
     session.add_all(categories)
 
     for i in range(1, 6):
         products = session.query(Product).filter(Product.name.like(f"%product_%")).all()
-        category = session.query(Category).filter(Category.name.like(f"category_product_{i}")).first()
+        category = (
+            session.query(Category)
+            .filter(Category.name.like(f"category_product_{i}"))
+            .first()
+        )
 
         for product in products:
             product.categories.append(category)
 
         session.add_all(products)
     session.commit()
+
 
 def create_product_tags(session: Session) -> None:
     logger.info("creating product tags")
@@ -109,7 +161,9 @@ def create_product_tags(session: Session) -> None:
     session.add_all(tags)
 
     for i in range(1, 6):
-        products = session.query(Product).filter(Product.name.like(f"{shop_prefix}{i}%")).all()
+        products = (
+            session.query(Product).filter(Product.name.like(f"{shop_prefix}{i}%")).all()
+        )
         for product in products:
             t = session.query(Tag).filter(Tag.name.like(f"tag_shop_{i}")).first()
             product.tags.append(t)
@@ -117,7 +171,10 @@ def create_product_tags(session: Session) -> None:
         session.add_all(products)
     session.commit()
 
-def create_cart(session: Session, user: User, is_public: bool) -> (Cart, List[CartItem]):
+
+def create_cart(
+    session: Session, user: User, is_public: bool
+) -> (Cart, List[CartItem]):
     with session.no_autoflush:
         no_of_items = randint(1, 3)
         cart_items_for_user = []
@@ -126,10 +183,15 @@ def create_cart(session: Session, user: User, is_public: bool) -> (Cart, List[Ca
             shop_id = randint(1, 5)
             prod_id = randint(1, 5)
             q = randint(1, 5)
-            p = session.query(Product).filter(Product.name.like(f"{shop_prefix}{shop_id}_product_{prod_id}")).first()
+            p = (
+                session.query(Product)
+                .filter(Product.name.like(f"{shop_prefix}{shop_id}_product_{prod_id}"))
+                .first()
+            )
             ci = CartItem(cart=c, product=p, quantity=q)
             cart_items_for_user.append(ci)
     return c, cart_items_for_user
+
 
 def create_carts(session: Session, oso: Oso) -> None:
     logger.info("creating carts")
@@ -148,7 +210,14 @@ def create_carts(session: Session, oso: Oso) -> None:
     session.commit()
     with oso.batch() as tx:
         for cart in carts:
-            tx.insert(("has_relation", Value("Cart", cart.id), "owner", Value("User", cart.user.id)))
+            tx.insert(
+                (
+                    "has_relation",
+                    Value("Cart", cart.id),
+                    "owner",
+                    Value("User", cart.user.id),
+                )
+            )
             if cart.is_public:
                 tx.insert(("is_public", Value("Cart", cart.id)))
 
@@ -159,7 +228,11 @@ def main():
         raise Exception("DATABASE_URL environment variable not set")
 
     engine: Engine = create_engine(db_url, echo=False)
-    oso: Oso = Oso(environ.get("OSO_URL"), environ.get("OSO_AUTH"), environ.get("OSO_DATA_BINDINGS") or {} )
+    oso: Oso = Oso(
+        environ.get("OSO_URL"),
+        environ.get("OSO_AUTH"),
+        environ.get("OSO_DATA_BINDINGS") or {},
+    )
     # clean up oso
     oso.delete(("has_relation", None, None, None))
     oso.delete(("has_role", None, None, None))
@@ -169,18 +242,19 @@ def main():
     with Session(engine) as session:
         logger.info("create initial shop data")
         # users:
-        create_users(session)
+        safe_call(create_users, session)
         # shops:
-        create_shops(session, oso)
+        safe_call(create_shops, session, oso)
         # products:
-        create_products(session, oso)
+        safe_call(create_products, session, oso)
         # categories & product_categories:
-        create_product_categories(session)
+        safe_call(create_product_categories, session)
         # tags & product_tags
-        create_product_tags(session)
+        safe_call(create_product_tags, session)
         # carts & cart_items
-        create_carts(session, oso)
+        safe_call(create_carts, session, oso)
         # orders & order_items
+
 
 if __name__ == "__main__":
     logger.info("starting seed of data")
