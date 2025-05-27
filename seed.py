@@ -6,8 +6,9 @@ from random import randint, randrange
 from typing import List
 
 from oso_cloud import Oso, Value
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import Engine, create_engine, select
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import func
 
 from oso_demo.models import Cart, CartItem, Category, Product, Shop, Tag, User
 
@@ -233,13 +234,20 @@ def main():
         environ.get("OSO_AUTH"),
         environ.get("OSO_DATA_BINDINGS") or {},
     )
-    # clean up oso
-    oso.delete(("has_relation", None, None, None))
-    oso.delete(("has_role", None, None, None))
-    oso.delete(("is_active", None))
-    oso.delete(("is_public", None))
 
     with Session(engine) as session:
+        stmt = select(func.count("*")).select_from(User)
+        result = session.execute(stmt)
+        for res in result:
+            if res[0] > 0:
+                logger.info("database already seeded, skipping")
+                return
+        # clean up oso
+        oso.delete(("has_relation", None, None, None))
+        oso.delete(("has_role", None, None, None))
+        oso.delete(("is_active", None))
+        oso.delete(("is_public", None))
+
         logger.info("create initial shop data")
         # users:
         safe_call(create_users, session)
